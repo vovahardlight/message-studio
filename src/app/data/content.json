@@ -1,0 +1,58 @@
+{
+    "seo": {
+      "es": {
+        "title": "Sofia Massage Madrid | Estudio Privado en Barrio de Salamanca",
+        "description": "Estudio privado de masajes en Madrid, Barrio de Salamanca (C. de Coslada, 28028). Masajes personalizados Relax, Deep y Sport con atención profesional y máxima discreción.",
+        "keywords": "masaje madrid salamanca, quiromasaje coslada madrid, masaje relajante madrid, deep tissue madrid, masaje deportivo madrid",
+        "canonical": "https://sofiamassagemadrid.es"
+      },
+      "en": {
+        "title": "Sofia Massage Madrid | Private Massage Studio in Salamanca District",
+        "description": "Private massage sanctuary in Madrid, Salamanca district (C. de Coslada, 28028). Tailored Relax, Deep Tissue and Sport therapies with absolute privacy and care.",
+        "keywords": "massage madrid salamanca, english speaking massage madrid, deep tissue madrid, relaxing massage madrid",
+        "canonical": "https://sofiamassagemadrid.es/en"
+      }
+    },
+    "contacts": {
+      "phone": "+34 614 394 539",
+      "whatsapp": "34614394539",
+      "address": "C. de Coslada, Salamanca, 28028 Madrid",
+      "hours": "Lunes a Jueves: 11:00 – 20:00 | Viernes a Domingo: 12:00 – 20:00",
+      "instagram": "https://www.instagram.com/sofia_massage_madrid?utm_source=qr&igsh=MXNyZTZtNWE2ZnFweA=="
+    },
+    "services": [
+      {
+        "id": "relax",
+        "title": "RELAX",
+        "descEs": "Relajación profunda, movimientos fluidos y un ritmo diseñado para ayudarte a desconectar del estrés diario.",
+        "descEn": "Deep relaxation, flowing movements and a rhythm designed to help you disconnect from everyday stress.",
+        "prices": [
+          { "duration": "60 min", "price": "60€" },
+          { "duration": "90 min", "price": "90€" }
+        ],
+        "freshaLink": "https://www.fresha.com/book-now/massage-brq10f2i/all-offer?share=true&pId=3108004"
+      },
+      {
+        "id": "deep",
+        "title": "DEEP",
+        "descEs": "Trabajo corporal enfocado en tensión muscular, tejido fascial y zonas de sobrecarga.",
+        "descEn": "Focused bodywork for muscular tension, fascial work and areas of overload.",
+        "prices": [
+          { "duration": "60 min", "price": "65€" },
+          { "duration": "90 min", "price": "95€" }
+        ],
+        "freshaLink": "https://www.fresha.com/book-now/massage-brq10f2i/all-offer?share=true&pId=3108004"
+      },
+      {
+        "id": "sport",
+        "title": "SPORT",
+        "descEs": "Masaje orientado a recuperación, movilidad y descarga muscular después de actividad física.",
+        "descEn": "Massage focused on recovery, mobility and muscular release after physical activity.",
+        "prices": [
+          { "duration": "60 min", "price": "65€" },
+          { "duration": "90 min", "price": "95€" }
+        ],
+        "freshaLink": "https://www.fresha.com/book-now/massage-brq10f2i/all-offer?share=true&pId=3108004"
+      }
+    ]
+  }

@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: auto !important;
+}
+
+body {
+  background-color: #121110;
+  color: #EDE6DE;
+  overflow-x: hidden;
+}
+
+/* Начальное состояние анимируемых блоков (защита от скачков макета до гидратации) */
+.gsap-reveal,
+.gsap-stagger-item {
+  will-change: transform, opacity;
+}
+
+/* Мягкий свет свечи на фоне */
+.candle-ambient-glow {
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(229, 152, 67, 0.22) 0%,
+    rgba(194, 112, 50, 0.06) 50%,
+    rgba(18, 17, 16, 0) 80%
+  );
+}

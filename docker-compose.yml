@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: massage_studio_web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URI=postgres://postgres:securepassword@db:5432/massage_cms
+      - PAYLOAD_SECRET=your_jwt_secret_key_minimum_32_chars
+      - NEXT_PUBLIC_SERVER_URL=https://tudominio.es
+    depends_on:
+      - db
+
+  db:
+    container_name: massage_studio_db
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=securepassword
+      - POSTGRES_DB=massage_cms
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
