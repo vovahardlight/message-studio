@@ -15,15 +15,15 @@ export default function GsapScrollProvider({ children }: { children: React.React
   useEffect(() => {
     const ctx = gsap.context(() => {
       
-      // 1. Официальный GSAP ScrollSmoother с выверенной физикой
+      // 1. Инициализируем GSAP ScrollSmoother
       ScrollSmoother.create({
         wrapper: wrapperRef.current,
         content: contentRef.current,
-        smooth: 1.6, // Длинный, свободный, шелковый ход за один свайп
+        smooth: 1.6, // Мягкий инерционный ход на десктопах
         effects: true, // Поддержка data-speed для параллакса
-        smoothTouch: 0.1, // Мягкая инерция на трекпадах
-        normalizeScroll: false, // Отключаем принудительный перехват, чтобы трекпад летел свободно
-        ignoreMobileResize: true,
+        smoothTouch: false, // ➔ ОТКЛЮЧАЕТ сглаживание на тач-экранах (нативный отзывчивый скролл на телефонах)
+        normalizeScroll: false, // Не блокирует системные жесты
+        ignoreMobileResize: true, // Предотвращает прыжки при сворачивании адресной строки на смартфонах
       });
 
       // 2. Анимация появления одиночных блоков на 70% высоты экрана
