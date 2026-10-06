@@ -16,6 +16,11 @@ body {
   overflow-x: hidden;
 }
 
+html, body {
+  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+}
+
 /* Начальное состояние анимируемых блоков (защита от скачков макета до гидратации) */
 .gsap-reveal,
 .gsap-stagger-item {

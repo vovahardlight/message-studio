@@ -6,7 +6,6 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import GsapScrollProvider from '@/components/GsapScrollProvider';
 
-// Регистрируем плагин ScrollTrigger для пиннинга и анимаций скролла
 gsap.registerPlugin(ScrollTrigger);
 
 // ==============================================================
@@ -167,7 +166,7 @@ export default function SofiaMassagePage({
   const [selectedDuration, setSelectedDuration] = useState<'60' | '90'>('60');
   const [activeRitualFilter, setActiveRitualFilter] = useState<'all' | 'relax' | 'deep' | 'sport'>('all');
 
-  // Рефы для GSAP
+  // Рефы
   const heroRef = useRef<HTMLElement>(null);
   const mobileBarRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
@@ -177,6 +176,27 @@ export default function SofiaMassagePage({
   const [legalTab, setLegalTab] = useState<'privacy' | 'legal' | 'cookies'>('privacy');
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [loaderMounted, setLoaderMounted] = useState(true);
+
+  // Баннер куки с сохранением в localStorage
+  const [showCookie, setShowCookie] = useState(false);
+
+  useEffect(() => {
+    const consent = localStorage.getItem('sofia_cookie_consent');
+    if (!consent) {
+      const timer = setTimeout(() => setShowCookie(true), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleAcceptCookies = () => {
+    localStorage.setItem('sofia_cookie_consent', 'accepted');
+    setShowCookie(false);
+  };
+
+  const handleRejectCookies = () => {
+    localStorage.setItem('sofia_cookie_consent', 'rejected');
+    setShowCookie(false);
+  };
 
   const googleMapsUrl = 'https://www.google.com/maps/place/Sof%C3%ADa+Massage+Madrid/@40.4376018,-3.6748092,17z/data=!4m16!1m9!3m8!1s0xd4229f358646857:0x17446d16b6656203!2sSof%C3%ADa+Massage+Madrid!8m2!3d40.4376018!4d-3.6748092!9m1!1b1!16s%2Fg%2F11npdcvm1_!3m5!1s0xd4229f358646857:0x17446d16b6656203!8m2!3d40.4376018!4d-3.6748092!16s%2Fg%2F11npdcvm1_!18m1!1e1';
   const baseFreshaUrl = 'https://www.fresha.com/book-now/sofia-massage-madrid-b9sthwsj/all-offer?share=true&pId=3108060';
@@ -192,23 +212,22 @@ export default function SofiaMassagePage({
   };
 
   // ==============================================================
-  // 1. АНИМАЦИЯ ПОДЪЕМА МОБИЛЬНОЙ ПАНЕЛИ (ПРОПОРЦИОНАЛЬНО СКРОЛЛУ)
+  // АНИМАЦИЯ ПОДЪЕМА И СКРЫТИЯ МОБИЛЬНОЙ ПАНЕЛИ
   // ==============================================================
   useEffect(() => {
     const heroEl = heroRef.current;
     const barEl = mobileBarRef.current;
+    const footerEl = footerRef.current;
 
     if (!heroEl || !barEl) return;
 
-    // Изначально прячем плашку ниже экрана на 120%
     gsap.set(barEl, { yPercent: 120, opacity: 0 });
 
-    // Пропорциональный подъем плашки по мере ухода Hero-экрана наверх
     const mobileTrigger = ScrollTrigger.create({
       trigger: heroEl,
-      start: 'bottom 85%', // как только низ Hero подходит к выходу
-      end: 'bottom 40%',   // пропорциональное раскрытие
-      scrub: 0.6,          // сглаженный пропорциональный скраб
+      start: 'bottom 85%',
+      end: 'bottom 40%',
+      scrub: 0.6,
       animation: gsap.to(barEl, {
         yPercent: 0,
         opacity: 1,
@@ -216,18 +235,34 @@ export default function SofiaMassagePage({
       }),
     });
 
+    let footerTrigger: ScrollTrigger | null = null;
+    if (footerEl) {
+      footerTrigger = ScrollTrigger.create({
+        trigger: footerEl,
+        start: 'top bottom',
+        onEnter: () => gsap.to(barEl, { yPercent: 120, opacity: 0, duration: 0.3 }),
+        onLeaveBack: () => gsap.to(barEl, { yPercent: 0, opacity: 1, duration: 0.3 }),
+      });
+    }
+
     return () => {
       mobileTrigger.kill();
+      if (footerTrigger) footerTrigger.kill();
     };
   }, []);
 
   // ==============================================================
-  // 2. НАСТОЯЩИЙ GSAP SCROLLTRIGGER ПИННИНГ ФУТЕРА (CURTAIN REVEAL)
+  // НАДЕЖНЫЙ МОБИЛЬНЫЙ ПИННИНГ ФУТЕРА (CURTAIN REVEAL)
   // ==============================================================
   useEffect(() => {
     const footer = footerRef.current;
     if (!footer) return;
 
+    ScrollTrigger.config({
+      ignoreMobileResize: true,
+    });
+
+    let lastWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
     const getOverlap = () => Math.min(window.innerHeight, footer.offsetHeight);
 
     const adjustFooterOverlap = () => {
@@ -244,11 +279,16 @@ export default function SofiaMassagePage({
       end: () => `+=${getOverlap()}`,
       pin: true,
       anticipatePin: 1,
+      fastScrollEnd: true,
+      invalidateOnRefresh: true,
     });
 
     const handleResize = () => {
-      adjustFooterOverlap();
-      ScrollTrigger.refresh();
+      if (window.innerWidth !== lastWidth) {
+        lastWidth = window.innerWidth;
+        adjustFooterOverlap();
+        ScrollTrigger.refresh();
+      }
     };
 
     window.addEventListener('resize', handleResize);
@@ -261,7 +301,7 @@ export default function SofiaMassagePage({
   }, [locale]);
 
   // ==============================================================
-  // 3. ВСТУПИТЕЛЬНАЯ АНИМАЦИЯ GSAP TIMELINE
+  // ВСТУПИТЕЛЬНАЯ АНИМАЦИЯ GSAP TIMELINE
   // ==============================================================
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -380,7 +420,7 @@ export default function SofiaMassagePage({
     {
       q: isEs ? '¿El masaje es personalizado?' : 'Is the session personalized?',
       a: isEs
-        ? 'Sí. Antes de comenzar dedicamos unos minutos a comentar tus necesidades, las zonas con mayor sobrecarga и el enfoque deseado.'
+        ? 'Sí. Antes de comenzar dedicamos unos minutos a comentar tus necesidades, las zonas con mayor sobrecarga y el enfoque deseado.'
         : 'Yes. Before beginning, we briefly discuss your focus areas, accumulated stress, and specific preferences.',
     },
     {
@@ -390,9 +430,9 @@ export default function SofiaMassagePage({
         : 'Yes. Sessions are strictly by advance appointment to guarantee you have the private studio entirely to yourself.',
     },
     {
-      q: isEs ? '¿Puedo reservar и comunicarme en inglés?' : 'Can I book and communicate in English?',
+      q: isEs ? '¿Puedo reservar y comunicarme en inglés?' : 'Can I book and communicate in English?',
       a: isEs
-        ? 'Sí. Las sesiones, la consulta и toda la comunicación están disponibles con total fluidez tanto en español как en inglés.'
+        ? 'Sí. Las sesiones, la consulta y toda la comunicación están disponibles con total fluidez tanto en español como en inglés.'
         : 'Yes. Sessions, consultation, and all communications are fully available in Spanish and English.',
     },
   ];
@@ -478,7 +518,7 @@ export default function SofiaMassagePage({
         {/* АРХИТЕКТУРНАЯ ШТОРКА (Hero -> Карта) */}
         <div className="relative z-10 bg-[#F5F1EA] shadow-[0_50px_110px_rgba(43,37,33,0.6)] border-b border-[#2B2521]/20">
           
-          {/* HERO СЕКЦИЯ (С РЕФОМ ДЛЯ ТРИГГЕРА МОБИЛЬНОЙ ПАНЕЛИ) */}
+          {/* HERO СЕКЦИЯ */}
           <section ref={heroRef} className="relative min-h-[90vh] flex items-center overflow-hidden border-b border-[#2B2521]/10 bg-[#F5F1EA]">
             <div className="absolute inset-0 pointer-events-none select-none">
               <img
@@ -510,7 +550,7 @@ export default function SofiaMassagePage({
 
                 <p className="hero-desc text-[#3E352E] text-base sm:text-lg font-normal leading-relaxed mb-10 max-w-md">
                   {isEs
-                    ? 'Sesiones de masaje adaptadas a ti en un estudio independiente en C. de Coslada, Madrid. Discreción, atención pausada и máxima comodidad.'
+                    ? 'Sesiones de masaje adaptadas a ti en un estudio independiente en C. de Coslada, Madrid. Discreción, atención pausada y máxima comodidad.'
                     : 'Personalised massage sessions tailored to your individual needs in C. de Coslada, Madrid. A quiet sanctuary focused on genuine restorative care.'}
                 </p>
 
@@ -731,7 +771,7 @@ export default function SofiaMassagePage({
                     </p>
                     <p>
                       {isEs
-                        ? 'Para mí, una buena sesión no consiste simplemente en aplicar presión. Se trata de escuchar el cuerpo, trabajar con atención и crear un espacio donde puedas realmente desconectar.'
+                        ? 'Para mí, una buena sesión no consiste simplemente en aplicar presión. Se trata de escuchar el cuerpo, trabajar con atención y crear un espacio donde puedas realmente desconectar.'
                         : 'For me, a great massage is not simply about pressure. It is about listening to the body, working with intention and creating a space where you can truly disconnect.'}
                     </p>
                   </div>
@@ -752,12 +792,12 @@ export default function SofiaMassagePage({
               <div className="space-y-3 text-[#3E352E] font-normal text-base leading-relaxed">
                 <p>
                   {isEs
-                    ? 'Un estudio privado, tranquilo и cuidado hasta el último detalle en el Barrio de Salamanca. Un espacio pensado para que puedas relajarte, desconectar и disfrutar de tu sesión con total privacidad.'
+                    ? 'Un estudio privado, tranquilo y cuidado hasta el último detalle en el Barrio de Salamanca. Un espacio pensado para que puedas relajarte, desconectar y disfrutar de tu sesión con total privacidad.'
                     : 'A private, peaceful studio designed with attention to every detail in the Salamanca district. A space created for you to relax, disconnect and enjoy your session in complete privacy.'}
                 </p>
                 <p className="font-medium text-[#2B2521]">
                   {isEs
-                    ? 'Disponemos de ducha и todo lo necesario para que tu experiencia sea cómoda de principio a fin.'
+                    ? 'Disponemos de ducha y todo lo necesario para que tu experiencia sea cómoda de principio a fin.'
                     : 'A shower and everything you need are available for your comfort before or after your massage.'}
                 </p>
               </div>
@@ -773,9 +813,9 @@ export default function SofiaMassagePage({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 gsap-stagger-group">
               {[
-                { title: 'PRIVATE', es: 'Estudio privado и tranquilo.', en: 'Private and peaceful studio.' },
+                { title: 'PRIVATE', es: 'Estudio privado y tranquilo.', en: 'Private and peaceful studio.' },
                 { title: 'PERSONALISED', es: 'Cada sesión se adapta a ti.', en: 'Every session is personalised.' },
-                { title: 'PROFESSIONAL', es: 'Atención profesional и cuidadosa.', en: 'Professional and attentive service.' },
+                { title: 'PROFESSIONAL', es: 'Atención profesional y cuidadosa.', en: 'Professional and attentive service.' },
                 { title: 'DISCREET', es: 'Privacidad y respeto en todo momento.', en: 'Privacy and respect at every step.' },
               ].map((pillar, idx) => (
                 <div
@@ -955,7 +995,7 @@ export default function SofiaMassagePage({
 
                 <p className="text-[#3E352E] text-base leading-relaxed font-normal">
                   {isEs
-                    ? 'El estudio está situado en una calle tranquila и residencial del Barrio de Salamanca, con excelente comunicación en transporte público и fácil acceso a parkings.'
+                    ? 'El estudio está situado en una calle tranquila y residencial del Barrio de Salamanca, con excelente comunicación en transporte público y fácil acceso a parkings.'
                     : 'The studio is nestled in a quiet, distinguished residential street of the Salamanca district, exceptionally well-connected by transport and parking.'}
                 </p>
 
@@ -994,7 +1034,7 @@ export default function SofiaMassagePage({
                     <span className="text-sm">📍</span>
                     <div>
                       <strong className="font-semibold text-[#2B2521]">{isEs ? 'Dirección exacta:' : 'Exact address:'}</strong>{' '}
-                      <span>{isEs ? 'C. de Coslada, 28028 Madrid (Piso и puerta facilitados al reservar)' : 'C. de Coslada, 28028 Madrid (Building details provided upon booking)'}</span>
+                      <span>{isEs ? 'C. de Coslada, 28028 Madrid (Piso y puerta facilitados al reservar)' : 'C. de Coslada, 28028 Madrid (Building details provided upon booking)'}</span>
                     </div>
                   </div>
                 </div>
@@ -1042,17 +1082,13 @@ export default function SofiaMassagePage({
         {/* ============================================================== */}
         {/* ТЕМНЫЙ ФУТЕР — ПИННИНГ GSAP SCROLLTRIGGER (CURTAIN REVEAL)     */}
         {/* ============================================================== */}
-       {/* ============================================================== */}
-        {/* ТЕМНЫЙ ФУТЕР — АДАПТИРОВАН ПОД МОБИЛЬНЫЙ ВЬЮПОРТ (CURTAIN)     */}
-        {/* ============================================================== */}
         <footer
           ref={footerRef}
-          className="relative z-0 bg-[#2B2521] text-[#F5F1EA] pt-8 pb-28 md:py-16 px-5 sm:px-6 flex flex-col justify-between"
+          className="relative z-0 max-h-[100svh] min-h-[380px] bg-[#2B2521] text-[#F5F1EA] pt-6 pb-24 md:py-16 px-5 sm:px-6 flex flex-col justify-between overflow-hidden"
         >
-          <div className="max-w-6xl mx-auto w-full grid grid-cols-2 md:grid-cols-12 gap-6 sm:gap-8 md:gap-10 pb-6 md:pb-12 border-b border-white/10 text-xs">
+          <div className="max-w-6xl mx-auto w-full grid grid-cols-2 md:grid-cols-12 gap-6 sm:gap-8 md:gap-10 pb-5 md:pb-12 border-b border-white/10 text-xs">
             
-            {/* Блок бренда (на мобильных занимает всю ширину в 2 колонки) */}
-            <div className="col-span-2 md:col-span-5 space-y-1.5 md:space-y-3">
+            <div className="col-span-2 md:col-span-5 space-y-1 md:space-y-3">
               <span className="font-serif text-xl sm:text-2xl tracking-wider uppercase block font-semibold text-[#F5F1EA]">
                 SOFIA MASSAGE MADRID
               </span>
@@ -1068,9 +1104,8 @@ export default function SofiaMassagePage({
               </p>
             </div>
 
-            {/* Колонка навигации (на мобильных стоит слева в компактном виде) */}
             <div className="col-span-1 md:col-span-3 space-y-1 md:space-y-2">
-              <span className="text-[10px] md:text-[11px] uppercase font-mono tracking-widest text-[#D9CBBE] font-semibold block mb-1.5 md:mb-3">
+              <span className="text-[10px] md:text-[11px] uppercase font-mono tracking-widest text-[#D9CBBE] font-semibold block mb-1 md:mb-3">
                 {isEs ? 'Navegación' : 'Navigation'}
               </span>
               <ul className="space-y-1 md:space-y-2 text-[#F5F1EA]/80 font-medium text-[11px] md:text-xs">
@@ -1084,9 +1119,8 @@ export default function SofiaMassagePage({
               </ul>
             </div>
 
-            {/* Колонка контактов (на мобильных стоит справа рядом с навигацией) */}
             <div className="col-span-1 md:col-span-4 space-y-1 md:space-y-2">
-              <span className="text-[10px] md:text-[11px] uppercase font-mono tracking-widest text-[#D9CBBE] font-semibold block mb-1.5 md:mb-3">
+              <span className="text-[10px] md:text-[11px] uppercase font-mono tracking-widest text-[#D9CBBE] font-semibold block mb-1 md:mb-3">
                 {isEs ? 'Contacto' : 'Direct'}
               </span>
               <ul className="space-y-1.5 md:space-y-2.5 text-[#F5F1EA]/80 font-medium text-[11px] md:text-xs">
@@ -1110,15 +1144,14 @@ export default function SofiaMassagePage({
 
           </div>
 
-          {/* Нижняя строчка копирайта и ссылок */}
-          <div className="max-w-6xl mx-auto w-full pt-4 md:pt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-[11px] md:text-xs text-[#D9CBBE]">
+          <div className="max-w-6xl mx-auto w-full pt-4 md:pt-8 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-[10px] md:text-xs text-[#D9CBBE]">
             <p>© Sofia Massage Madrid 2026</p>
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            <div className="flex flex-wrap gap-4 sm:gap-6">
               <button onClick={() => openLegal('privacy')} className="hover:text-white transition-colors underline">
-                {isEs ? 'Privacidad' : 'Privacy Policy'}
+                {isEs ? 'Política de Privacidad' : 'Privacy Policy'}
               </button>
               <button onClick={() => openLegal('cookies')} className="hover:text-white transition-colors underline">
-                {isEs ? 'Cookies' : 'Cookie Policy'}
+                {isEs ? 'Política de Cookies' : 'Cookie Policy'}
               </button>
               <button onClick={() => openLegal('legal')} className="hover:text-white transition-colors underline">
                 {isEs ? 'Aviso Legal' : 'Legal Notice'}
@@ -1130,7 +1163,7 @@ export default function SofiaMassagePage({
       </GsapScrollProvider>
 
       {/* ============================================================== */}
-      {/* 4. МОБИЛЬНАЯ ПАНЕЛЬ С АНИМАЦИЕЙ ПОДЪЕМА ПО СКРОЛЛУ (HERO EXIT) */}
+      {/* 4. МОБИЛЬНАЯ ПАНЕЛЬ С АНИМАЦИЕЙ ПОДЪЕМА ПО СКРОЛЛУ              */}
       {/* ============================================================== */}
       <div
         ref={mobileBarRef}
@@ -1217,12 +1250,54 @@ export default function SofiaMassagePage({
                   </h3>
                   <p>
                     {isEs
-                      ? 'Estudio profesional de masajes и bienestar corporal no sanitario con sede en C. de Coslada, Barrio de Salamanca, 28028 Madrid.'
+                      ? 'Estudio profesional de masajes y bienestar corporal no sanitario con sede en C. de Coslada, Barrio de Salamanca, 28028 Madrid.'
                       : 'Professional non-medical massage and bodywork studio based in C. de Coslada, Barrio de Salamanca, 28028 Madrid.'}
                   </p>
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 6. AEPD COOKIE POPUP (ИСПАНИЯ / RGPD)                          */}
+      {/* ============================================================== */}
+      {showCookie && (
+        <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-50 p-5 sm:p-6 bg-[#2B2521] text-[#F5F1EA] border border-white/10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-fadeIn">
+          <div className="flex items-start gap-3 mb-4">
+            <span className="text-xl">🍪</span>
+            <div>
+              <h4 className="font-serif text-base font-normal text-[#F5F1EA]">
+                {isEs ? 'Aviso de Cookies' : 'Cookie Notice'}
+              </h4>
+              <p className="text-[11px] sm:text-xs text-[#D9CBBE] leading-relaxed mt-1 font-light">
+                {isEs
+                  ? 'Utilizamos cookies técnicas y analíticas conforme a la AEPD en España. Consulta nuestra '
+                  : 'We use technical and aggregated analytics cookies under Spanish AEPD guidelines. Read our '}
+                <button
+                  onClick={() => openLegal('cookies')}
+                  className="text-[#A88B74] underline underline-offset-2 hover:text-[#FAF7F2] font-normal transition-colors"
+                >
+                  {isEs ? 'política de cookies' : 'cookie policy'}
+                </button>.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-1">
+            <button
+              onClick={handleRejectCookies}
+              className="px-4 py-2 rounded-full border border-white/15 text-[11px] font-mono uppercase tracking-wider text-[#D9CBBE] hover:text-white transition-all active:scale-95"
+            >
+              {isEs ? 'Rechazar' : 'Reject'}
+            </button>
+            <button
+              onClick={handleAcceptCookies}
+              className="px-5 py-2 rounded-full bg-[#A88B74] text-[#FAF7F2] text-[11px] font-mono uppercase tracking-wider font-semibold hover:bg-[#967963] transition-all shadow-md active:scale-95"
+            >
+              {isEs ? 'Aceptar' : 'Accept'}
+            </button>
           </div>
         </div>
       )}
